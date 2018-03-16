@@ -47,6 +47,7 @@ class Runner
      * @param string|null $router The router
      * @param null $cert The SSL certificate if needed
      * @param int $cluster The server cluster : by default set to 10
+     * @throws \ParseError
      */
     public function run(string $host = null, int $port = null, bool $https = false,
                         string $root = null, string $router = null, $cert = null, int $cluster = 10) {
@@ -71,7 +72,18 @@ class Runner
         else {
             $secures = [];
         }
-        $docroot = is_null($root)? realpath(__DIR__.'/../../public') : $root;
+
+        $pb = null;
+        if (is_dir(__DIR__.'/../../public')) {
+            $pb = realpath(__DIR__.'/../../public');
+        }
+        else if (__DIR__.'/../../../public') {
+            $pb = realpath(__DIR__.'/../../../public');
+        }
+        else {
+            throw new \ParseError("Cannot determine the public directory position.");
+        }
+        $docroot = is_null($root)? $pb : $root;
         $number  = $cluster;
         $cert    = is_null($cert) ? (__DIR__ . '/certificate.pem') : $cert;
 
