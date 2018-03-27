@@ -13,7 +13,7 @@
  */
 
 namespace iumioFramework\Fis;
-use iumioFramework\Core\Console\Display\OutputManager as Output;
+use iumioFramework\Core\Additional\Manager\Display\OutputManager as Output;
 
 /**
  * Class Runner
