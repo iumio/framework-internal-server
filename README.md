@@ -2,7 +2,7 @@
     <img src="https://framework.iumio.com/images/iumio-framework-horizontal.png" width="350">
 </a></p>
 
-iumio Framework Internal Server (Fis)
+iumio Framework Internal Server (FIS)
 ======================================
 
 @ Let's create more simply

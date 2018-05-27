@@ -13,6 +13,7 @@
  */
 
 namespace iumioFramework\Fis;
+
 use iumioFramework\Core\Additional\Manager\Display\OutputManager as Output;
 
 /**
@@ -37,38 +38,39 @@ class Runner
      * @param int $cluster The server cluster : by default set to 10
      * @throws \ParseError
      */
-    public function run(string $host = null, int $port = null, bool $https = false,
-                        string $root = null, string $router = null, $cert = null, int $cluster = 10) {
+    public function run(
+        string $host = null,
+        int $port = null,
+        bool $https = false,
+        string $root = null,
+        string $router = null,
+        $cert = null,
+        int $cluster = 10
+    ) {
 
         if (is_null($host) && is_null($port)) {
             $servers = ["localhost:8000"];
-        }
-        elseif (is_null($host) && !is_null($port)) {
+        } elseif (is_null($host) && !is_null($port)) {
             $servers = ["localhost:$port"];
-        }
-        elseif (!is_null($host) && is_null($port)) {
+        } elseif (!is_null($host) && is_null($port)) {
             $servers = ["$host:8000"];
-        }
-        else {
+        } else {
             $servers = ["$host:$port"];
         }
 
         if ($https) {
             $secures = $servers;
             $servers = [];
-        }
-        else {
+        } else {
             $secures = [];
         }
 
         $pb = null;
         if (is_dir(__DIR__.'/../../public')) {
             $pb = realpath(__DIR__.'/../../public');
-        }
-        else if (__DIR__.'/../../../public') {
+        } elseif (__DIR__.'/../../../public') {
             $pb = realpath(__DIR__.'/../../../public');
-        }
-        else {
+        } else {
             throw new \ParseError("Cannot determine the public directory position.");
         }
         $docroot = is_null($root)? $pb : $root;
@@ -77,11 +79,10 @@ class Runner
 
         if (!$servers && !$secures) {
             Output::displayAsError("Framework internal server Error : At least 1 server must be specified.\n
-            Referer to help command to get options list\n");
+        Referer to help command to get options list\n");
         }
 
         try {
-
             if ($number < 1 || $number > 20) {
                 throw new \RuntimeException('The number of clusters must be between 1 and 20.');
             }
@@ -103,7 +104,8 @@ class Runner
                 foreach ($group as $i => $server) {
                     list($host, $port) = explode(':', $server, 2) + [1 => ''];
                     $ip = filter_var(gethostbyname($host), FILTER_VALIDATE_IP, FILTER_FLAG_IPV4);
-                    $regex = '/\A(?:[0-9]{1,4}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])\z/';
+                    $regex =
+                        '/\A(?:[0-9]{1,4}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])\z/';
                     if ($ip === false || !preg_match($regex, $port)) {
                         throw new \RuntimeException("Invalid host or port: $server");
                     }
@@ -119,7 +121,7 @@ class Runner
             $used_processes = [];
             $factory = new \mpyw\HyperBuiltinServer\BuiltinServerFactory($loop);
             $factory
-                ->createMultipleAsync($number, '127.0.0.1', $docroot, $router)
+                ->createMultipleAsync($number, $host, $docroot, $router)
                 ->then(function (array $processes) use ($loop, $listeners, &$used_processes) {
                     $used_processes = $processes;
                     $master = new \mpyw\HyperBuiltinServer\Master($loop, $processes);
@@ -136,16 +138,15 @@ class Runner
                 ->done();
 
             set_time_limit(0);
+            Output::displayAsGreen("Running the Framework Internal Server on ".
+                (($https)? "https" : "http")."://".((is_null($host))? "localhost" : $host).
+                ":".((is_null($port))? "8000" : $port)."", "none");
             $loop->run();
-
         } catch (\Throwable $e) {
             Output::displayAsError("Framework internal server Error :  {$e->getMessage()}");
-
         } catch (\Exception $e) {
-
             Output::displayAsError("Framework internal server Error :  {$e->getMessage()}");
             exit(1);
-
         }
     }
 }
